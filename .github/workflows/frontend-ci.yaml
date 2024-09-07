@@ -1,9 +1,15 @@
 name: frontend ci 
 
 on:
+  workflow_dispatch:
+
   push:
     branches:
       -main
+
+  pull_request:
+    branches:
+      - main
 
 jobs:
   LINT:
@@ -21,9 +27,51 @@ jobs:
     - name: install depedencies
       uses: npm ci
 
-    - name: run tests
-      uses: npm test
+    - name: run lint
+      uses: npm run lint
 
     - name: print message
-      uses: echo "build is running"
+      uses: echo "lint build is running"
+
+  TEST:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: checkout code
+      uses: actions/checkout@v3
+
+    - name: setup node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
+
+    - name: install depedencies
+      uses: npm ci
+
+    - name: run tests
+      uses: npm run test
+
+    - name: print message
+      uses: echo "test build is running"
+
+  BUILD:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: checkout code
+      uses: actions/checkout@v3
+
+    - name: setup node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
+
+    - name: install depedencies
+      uses: npm ci
+
+    - name: run tests
+      uses: npm run test
+
+    - name: print message
+      uses: echo "test build is running"
 
