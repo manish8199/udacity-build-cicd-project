@@ -17,5 +17,13 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: 18
-        
-         
+
+    - name: install depedencies
+      uses: npm ci
+
+    - name: run tests
+      uses: npm test
+
+    - name: print message
+      uses: echo "build is running"
+
