@@ -28,10 +28,10 @@ jobs:
         cache-dependency-path: "./starter/frontend/package-lock.json"
 
     - name: install depedencies
-      run: cd starter/fronend && npm ci
+      run: cd ./starter/frontend && npm ci
 
     - name: run lint
-      run: cd starter/fronend && npm run lint
+      run: cd ./starter/frontend && npm run lint
 
     - name: print message
       run: echo "lint build is running"
@@ -51,10 +51,10 @@ jobs:
         cache-dependency-path: "./starter/frontend/package-lock.json"
 
     - name: install depedencies
-      run: cd starter/fronend &&  npm ci
+      run: cd ./starter/frontend &&  npm ci
 
     - name: run tests
-      run: cd starter/fronend && npm run test
+      run: cd ./starter/frontend && npm run test
 
     - name: print message
       run: echo "test build is running"
