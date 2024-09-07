@@ -24,15 +24,16 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: 18
+        cache: 'npm'
 
     - name: install depedencies
-      uses: cd starter/fronend && npm ci
+      run: cd starter/fronend && npm ci
 
     - name: run lint
-      uses: cd starter/fronend && npm run lint
+      run: cd starter/fronend && npm run lint
 
     - name: print message
-      uses: echo "lint build is running"
+      run: echo "lint build is running"
 
   test:
     runs-on: ubuntu-latest
@@ -45,15 +46,16 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: 18
+        cache: 'npm'
 
     - name: install depedencies
-      uses: cd starter/fronend &&  npm ci
+      run: cd starter/fronend &&  npm ci
 
     - name: run tests
-      uses: cd starter/fronend && npm run test
+      run: cd starter/fronend && npm run test
 
     - name: print message
-      uses: echo "test build is running"
+      run: echo "test build is running"
 
   build:
     runs-on: ubuntu-latest
@@ -70,11 +72,11 @@ jobs:
         node-version: 18
 
     - name: install depedencies
-      uses: npm ci
+      run: npm ci
 
     - name: run tests
-      uses: npm run test
+      run: npm run test
 
     - name: print message
-      uses: echo "test build is running"
+      run: echo "test build is running"
 
