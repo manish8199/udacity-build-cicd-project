@@ -12,7 +12,7 @@ on:
       - main
 
 jobs:
-  LINT:
+  lint:
     runs-on: ubuntu-latest
 
     steps:
@@ -26,15 +26,15 @@ jobs:
         node-version: 18
 
     - name: install depedencies
-      uses: npm ci
+      uses: cd starter/fronend && npm ci
 
     - name: run lint
-      uses: npm run lint
+      uses: cd starter/fronend && npm run lint
 
     - name: print message
       uses: echo "lint build is running"
 
-  TEST:
+  test:
     runs-on: ubuntu-latest
 
     steps:
@@ -47,16 +47,18 @@ jobs:
         node-version: 18
 
     - name: install depedencies
-      uses: npm ci
+      uses: cd starter/fronend &&  npm ci
 
     - name: run tests
-      uses: npm run test
+      uses: cd starter/fronend && npm run test
 
     - name: print message
       uses: echo "test build is running"
 
-  BUILD:
+  build:
     runs-on: ubuntu-latest
+    needs: [lint, test]
+
 
     steps:
     - name: checkout code
