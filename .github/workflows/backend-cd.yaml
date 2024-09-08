@@ -1,6 +1,7 @@
 name: Backend Continuous Deployment
 
-
+env:
+  EKS_CLUSTER_NAME: cluster 
 
 
 on:
@@ -8,7 +9,7 @@ on:
 
   push:
     branches:
-      -main
+      - main
 
   pull_request:
     branches:
@@ -89,11 +90,7 @@ jobs:
 
     - name: Test with unittest
       run: |
-        python -m unittest discover
-
-    - name: Build Docker image
-      run: |
-          cd ./starter/backend &&  docker build -t docker-image .        
+        python -m unittest discover       
 
     - name: print message
       run: echo "test build is running"
@@ -118,6 +115,20 @@ jobs:
       run: |
           cd ./starter/backend &&   docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+
+    - name: Update kube config
+      env:
+          AWS_REGION: us-east-1
+      run: aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_REGION
+
+    - name: Deploy to EKS
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}        
+        IMAGE_TAG: ${{ github.sha }}
+      run: |
+        cd ./starter/backend && sed -i.bak "s|DOCKER_IMAGE|$REGISTRY/$REPOSITORY:$IMAGE_TAG|g" k8s/deployment.yaml && \
+        kubectl apply -f k8s/deployment.yaml
+        kubectl apply -f k8s/service.yaml
 
 
 

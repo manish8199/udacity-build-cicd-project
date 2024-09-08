@@ -4,8 +4,6 @@ env:
   REACT_APP_MOVIE_API_URL: 'http://localhost:5000'
   EKS_CLUSTER_NAME: cluster 
 
-
-
 on:
   workflow_dispatch:
 
