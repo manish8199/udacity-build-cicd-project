@@ -2,6 +2,8 @@ name: Frontend Continuous Deployment
 
 env:
   REACT_APP_MOVIE_API_URL: 'http://localhost:5000'
+  EKS_CLUSTER_NAME: cluster 
+
 
 
 on:
@@ -110,6 +112,20 @@ jobs:
       run: |
           cd ./starter/frontend &&   docker build --build-arg REACT_APP_MOVIE_API_URL=${{ env.REACT_APP_MOVIE_API_URL }}  -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+
+    - name: Update kube config
+      env:
+          AWS_REGION: us-east-1
+      run: aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_REGION
+
+    - name: Deploy to EKS
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}        
+        IMAGE_TAG: ${{ github.sha }}
+      run: |
+        sed -i.bak "s|DOCKER_IMAGE|$REGISTRY/$REPOSITORY:$IMAGE_TAG|g" k8s/deployment.yaml && \
+        kubectl apply -f k8s/deployment.yaml
+        kubectl apply -f k8s/service.yaml
 
 
 
