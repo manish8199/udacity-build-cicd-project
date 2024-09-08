@@ -1,0 +1,78 @@
+name: Backend Continuous Integration
+
+on:
+  workflow_dispatch:
+
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  lint job:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4.1.7
+            
+
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    - run: python test_script.py
+
+    - name: install depedencies
+      run: cd ./starter/frontend && npm ci
+
+    - name: run lint
+      run: cd ./starter/frontend && npm run lint
+
+    - name: print message
+      run: echo "lint build is running"
+
+  test job:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: checkout code
+      uses: actions/checkout@v4.1.7
+
+    - name: setup node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
+        cache: 'npm'
+        cache-dependency-path: "./starter/frontend/package-lock.json"
+
+    - name: install depedencies
+      run: cd ./starter/frontend &&  npm ci
+
+    - name: run tests
+      run: cd ./starter/frontend && npm run test
+
+    - name: print message
+      run: echo "test build is running"
+
+  build job:
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+
+
+    steps:
+    - name: checkout code
+      uses: actions/checkout@v4.1.7
+
+    - name: setup node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18
+
+    - name: install depedencies
+      run: cd ./starter/frontend && npm ci
+
+    - name: run tests
+      run:  cd ./starter/frontend && npm run test
+
+    - name: print message
+      run: echo "test build is running"
+
