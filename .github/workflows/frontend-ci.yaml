@@ -1,5 +1,9 @@
 name: Frontend Continuous Integration 
 
+env:
+  # Set Node.js Version
+  REACT_APP_MOVIE_API_URL: 'REACT_APP_MOVIE_API_URL'
+
 on:
   workflow_dispatch:
 
