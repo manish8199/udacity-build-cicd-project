@@ -111,15 +111,7 @@ jobs:
           docker build --build-arg REACT_APP_MOVIE_API_URL= ${{ env.REACT_APP_MOVIE_API_URL }}  -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
 
-    - name: Set up kubectl
-      uses: azure/setup-kubectl@v2
-      with:
-        version: 'latest'
 
-    - name: Deploy to Kubernetes
-      run: |
-        echo "${{ secrets.KUBECONFIG }}" > kubeconfig.yaml
-        kubectl apply -f deployment.yml --kubeconfig=kubeconfig.yaml
 
 
 
