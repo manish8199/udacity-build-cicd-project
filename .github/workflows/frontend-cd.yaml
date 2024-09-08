@@ -1,10 +1,6 @@
 name: Frontend Continuous Deployment
 
 env:
-  # Set Node.js Version
-  NODE_VERSION: '18.x'
-  AWS_REGION: us-east-1     # Update this to your AWS Region
-  TF_ACTION_WORKING_DIR: 'terraform' # Update this to your Terraform files directory
   REACT_APP_MOVIE_API_URL: 'http://localhost:5000'
 
 
@@ -91,33 +87,9 @@ jobs:
       run: |
           cd ./starter/frontend &&  docker build -t docker-image .
 
-    - name: print message
-      run: echo "test build is running"
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
 
-
-  install-build-test:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Check out repository
-      uses: actions/checkout@v3
-
-    - name: Use Node.js 
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{env.NODE_VERSION}}
-        cache: 'npm'
-
-    - name: Install, Build, Test
-      run: | 
-        npm ci
-        npm run build --if-present
-        npm test 
-
-  ecr-login:
-    runs-on: ubuntu-latest
-    steps:
-   
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
@@ -127,49 +99,28 @@ jobs:
         aws-region: us-east-1
 
     - name: Amazon ECR "Login" Action for GitHub Actions
+      id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2.0.1
 
-    - name: Create CloudFormation Stack
-      uses: aws-actions/aws-cloudformation-github-deploy@v1
+    - name: Build, tag, and push docker image to Amazon ECR
+      env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPOSITORY: frontend
+          IMAGE_TAG: ${{ github.sha }}
+      run: |
+          docker build --build-arg REACT_APP_MOVIE_API_URL= ${{ env.REACT_APP_MOVIE_API_URL }}  -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
+          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+
+    - name: Set up kubectl
+      uses: azure/setup-kubectl@v2
       with:
-        name: udatest
-        template: udatest.yml
+        version: 'latest'
+
+    - name: Deploy to Kubernetes
+      run: |
+        echo "${{ secrets.KUBECONFIG }}" > kubeconfig.yaml
+        kubectl apply -f deployment.yml --kubeconfig=kubeconfig.yaml
 
 
-  terraform:
-    name: 'Terraform'
-    runs-on: ubuntu-latest   # Use the latest Ubuntu runner
 
-    steps:
-      # Check out the code to the runner
-      - name: Checkout
-        uses: actions/checkout@v4
-      
-      # Configure AWS credentials
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }} # Use your stored AWS Access Key ID
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }} # Use your stored AWS Secret Access Key
-          aws-session-token: ${{secrets.AWS_SESSION_TOKEN}}
-          aws-region: ${{ env.AWS_REGION }} # Use the region from your environment variables
-        
-      # Set up the specified version of Terraform
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
-      
-      # Initialize your Terraform configuration
-      - name: Terraform Init
-        run: terraform init
-
-      # Validate your Terraform configuration
-      - name: Terraform Validate
-        run: terraform validate 
-
-      # Generate and display an execution plan
-      - name: Terraform Plan
-        run: terraform plan 
-
-      # Apply the changes required to reach the desired state of the configuration
-      - name: Terraform Apply
-        run: terraform apply -auto-approve 
+ 
