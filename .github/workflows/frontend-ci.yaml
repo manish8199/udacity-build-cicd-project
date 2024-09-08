@@ -57,7 +57,7 @@ jobs:
 
   buildjob:
     runs-on: ubuntu-latest
-    needs: [lint, test]
+    needs: [lintjob, testjob]
 
 
     steps:
