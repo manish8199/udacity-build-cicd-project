@@ -1,11 +1,11 @@
-name: frontend ci 
+name: Frontend Continuous Deployment
 
 env:
   # Set Node.js Version
   NODE_VERSION: '18.x'
   AWS_REGION: us-east-1     # Update this to your AWS Region
   TF_ACTION_WORKING_DIR: 'terraform' # Update this to your Terraform files directory
-
+  REACT_APP_MOVIE_API_URL: 'http://localhost:5000'
 
 
 on:
@@ -20,6 +20,81 @@ on:
       - main
 
 jobs:
+
+  lintjob:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4.1.7
+            
+
+    - name: setup node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18
+        cache: 'npm'
+        cache-dependency-path: "./starter/frontend/package-lock.json"
+
+    - name: install depedencies
+      run: cd ./starter/frontend && npm ci
+
+    - name: run lint
+      run: cd ./starter/frontend && npm run lint
+
+    - name: print message
+      run: echo "lint build is running"
+
+  testjob:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: checkout code
+      uses: actions/checkout@v4.1.7
+
+    - name: setup node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
+        cache: 'npm'
+        cache-dependency-path: "./starter/frontend/package-lock.json"
+
+    - name: install depedencies
+      run: cd ./starter/frontend &&  npm ci
+
+    - name: run tests
+      run: cd ./starter/frontend && npm run test
+
+    - name: print message
+      run: echo "test build is running"
+
+  buildjob:
+    runs-on: ubuntu-latest
+    needs: [lintjob, testjob]
+
+
+    steps:
+    - name: checkout code
+      uses: actions/checkout@v4.1.7
+
+    - name: setup node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18
+        cache: 'npm'
+        cache-dependency-path: "./starter/frontend/package-lock.json"
+
+    - name: install depedencies
+      run: cd ./starter/frontend && npm ci
+
+    - name: Build Docker image
+      run: |
+          cd ./starter/frontend &&  docker build -t docker-image .
+
+    - name: print message
+      run: echo "test build is running"
+
+
   install-build-test:
     runs-on: ubuntu-latest
 
@@ -39,11 +114,9 @@ jobs:
         npm run build --if-present
         npm test 
 
-  create-stack:
+  ecr-login:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
    
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v2
@@ -52,6 +125,9 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-session-token: ${{secrets.AWS_SESSION_TOKEN}}
         aws-region: us-east-1
+
+    - name: Amazon ECR "Login" Action for GitHub Actions
+      uses: aws-actions/amazon-ecr-login@v2.0.1
 
     - name: Create CloudFormation Stack
       uses: aws-actions/aws-cloudformation-github-deploy@v1
@@ -97,27 +173,3 @@ jobs:
       # Apply the changes required to reach the desired state of the configuration
       - name: Terraform Apply
         run: terraform apply -auto-approve 
-
-      # Check the status of the Blue environment
-      - name: Check status of Blue Environment
-        id: blue_status
-        run: echo "::set-output name=status::$(terraform output -raw blue_status)"
-
-      # Check the status of the Green environment
-      - name: Check status of Green Environment
-        id: green_status
-        run: echo "::set-output name=status::$(terraform output -raw green_status)"
-
-      # Switch traffic to the Green environment if the Blue environment is currently live
-      - name: Switch traffic to Green if Blue is currently live
-        if: steps.blue_status.outputs.status == 'live'
-        run: |
-          terraform apply -var='live_environment=green' -auto-approve
-          echo "Switched live traffic to Green environment"
-
-      # Switch traffic to the Blue environment if the Green environment is currently live
-      - name: Switch traffic to Blue if Green is currently live
-        if: steps.green_status.outputs.status == 'live'
-        run: |
-          terraform apply -var='live_environment=blue' -auto-approve
-          echo "Switched live traffic to Blue environment"
