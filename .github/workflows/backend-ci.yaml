@@ -57,7 +57,7 @@ jobs:
 
     - name: Test with unittest
       run: |
-        python -m unittest disco
+        python -m unittest discover
 
   buildjob:
     runs-on: ubuntu-latest
