@@ -87,6 +87,7 @@ jobs:
       uses: docker/setup-buildx-action@v2
 
     - name: Configure AWS credentials
+      id: login-aws
       uses: aws-actions/configure-aws-credentials@v2
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -95,9 +96,11 @@ jobs:
         aws-region: us-east-1
         mask-aws-account-id: false
 
-    - name: Amazon ECR "Login" Action for GitHub Actions
+    - name: Amazon ECR "Login" Acti
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2.0.1
+      with:
+        mask-aws-account-id: false
 
     - name: Build, tag, and push docker image to Amazon ECR
       env:
@@ -106,6 +109,7 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
       run: |
           echo ${{ steps.login-ecr.outputs.registry }}
+          echo ${{ steps.login-aws.outputs.aws-account-id}}
           cd ./starter/frontend &&   docker build --build-arg REACT_APP_MOVIE_API_URL=${{ env.REACT_APP_MOVIE_API_URL }}  -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
 
