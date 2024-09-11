@@ -107,7 +107,7 @@ jobs:
           echo ${{ steps.login-ecr.outputs.registry }}
           echo ${{ steps.login-aws.outputs.aws-account-id}}
           echo ${{ env.REACT_APP_MOVIE_API_URL }}
-          cd ./starter/frontend &&   docker build --build-arg REACT_APP_MOVIE_API_URL=${{ env.REACT_APP_MOVIE_API_URL }}  -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
+          cd ./starter/frontend &&   docker build --build-arg REACT_APP_MOVIE_API_URL=http://localhost:5000 -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
 
     - name: Update kube config
