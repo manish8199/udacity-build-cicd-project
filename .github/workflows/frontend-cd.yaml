@@ -1,7 +1,7 @@
 name: Frontend Continuous Deployment
 
 env:
-  REACT_APP_MOVIE_API_URL: 'http://localhost:5000'
+  REACT_APP_MOVIE_API_URL: 'http://172.20.22.248:5000'
   EKS_CLUSTER_NAME: cluster 
 
 on:
