@@ -12,3 +12,7 @@ spec:
     - protocol: TCP
       port: 80
       targetPort: 5000
+    - name: "5153"
+      protocol: TCP
+      port: 5000
+      targetPort: 5000
